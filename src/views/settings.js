@@ -1,4 +1,5 @@
 import { state, setTheme, clearAll, save } from '../store.js';
+import { notificationsAvailable, setEnabled as setNotificationsEnabled } from '../notifications.js';
 
 const THEMES = [
   { key: 'blue',   label: 'ブルー' },
@@ -35,6 +36,43 @@ export function renderSettings(root, { rerender }) {
     });
   });
   root.appendChild(themeCard);
+
+  const notifCard = document.createElement('div');
+  notifCard.className = 'card';
+  const isOn = !!state.notificationsEnabled;
+  const native = notificationsAvailable();
+  notifCard.innerHTML = `
+    <div style="font-weight:600; margin-bottom: 6px;">通知（リマインダー）</div>
+    <div class="muted" style="margin-bottom: 12px;">
+      ${native
+        ? '服用時刻になると毎日通知でお知らせします。'
+        : 'Android アプリ版でのみ動作します（ブラウザでは無効）。'}
+    </div>
+    <button class="btn btn-block ${isOn ? '' : 'primary'}" id="notif-toggle"
+      ${native ? '' : 'disabled style="opacity:.5; cursor:not-allowed;"'}>
+      ${isOn ? '通知をオフにする' : '通知をオンにする'}
+    </button>
+    <div class="muted" id="notif-status" style="margin-top:8px;"></div>
+  `;
+  notifCard.querySelector('#notif-toggle').addEventListener('click', async () => {
+    const status = notifCard.querySelector('#notif-status');
+    status.textContent = '処理中…';
+    try {
+      const res = await setNotificationsEnabled(!isOn);
+      if (res.skipped === 'permission-denied') {
+        status.textContent = '権限が許可されませんでした。端末の設定からアプリの通知を有効にしてください。';
+        state.notificationsEnabled = false;
+        save();
+      } else if (res.skipped === 'unsupported') {
+        status.textContent = 'この端末では通知を使用できません。';
+      } else {
+        rerender();
+      }
+    } catch (err) {
+      status.textContent = 'エラー: ' + err.message;
+    }
+  });
+  root.appendChild(notifCard);
 
   const dataCard = document.createElement('div');
   dataCard.className = 'card';

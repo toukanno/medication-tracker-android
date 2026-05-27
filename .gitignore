@@ -18,4 +18,6 @@ android/app/src/main/assets/capacitor.plugins.json
 *.apk
 *.aab
 *.keystore
+android/keystore.properties
 !medication-tracker-debug.apk
+!medication-tracker-release-unsigned.aab

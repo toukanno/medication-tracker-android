@@ -1,4 +1,7 @@
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { state, save, load } from './store.js';
+import { rescheduleAll } from './notifications.js';
 import { renderToday } from './views/today.js';
 import { renderMedications } from './views/medications.js';
 import { renderHistory } from './views/history.js';
@@ -6,6 +9,10 @@ import { renderSettings } from './views/settings.js';
 
 load();
 document.body.dataset.theme = state.theme;
+
+if (Capacitor.isNativePlatform()) {
+  rescheduleAll().catch((e) => console.warn('reschedule failed', e));
+}
 
 const root = document.getElementById('app');
 
@@ -76,3 +83,9 @@ function pad(n) { return String(n).padStart(2, '0'); }
 
 window.addEventListener('beforeunload', save);
 render();
+
+if (Capacitor.isNativePlatform()) {
+  requestAnimationFrame(() => {
+    SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
+  });
+}

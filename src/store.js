@@ -2,6 +2,7 @@ const KEY = 'medication-tracker-state-v1';
 
 export const state = {
   theme: 'blue',
+  notificationsEnabled: false,
   medications: [], // {id, name, dose, times: ["08:00", ...], note}
   logs: [], // {id, medId, time: "08:00", date: "YYYY-MM-DD", takenAt: epoch}
 };

@@ -1,4 +1,5 @@
 import { state, addMedication, updateMedication, deleteMedication } from '../store.js';
+import { rescheduleAll } from '../notifications.js';
 
 export function renderMedications(root, { rerender }) {
   if (state.medications.length === 0) {
@@ -32,6 +33,7 @@ export function renderMedications(root, { rerender }) {
         if (confirm(`「${m.name}」を削除しますか？`)) {
           deleteMedication(m.id);
           rerender();
+          rescheduleAll().catch(() => {});
         }
       });
       list.appendChild(card);
@@ -142,6 +144,7 @@ function openEditor(root, med, rerender) {
     else addMedication(payload);
     backdrop.remove();
     rerender();
+    rescheduleAll().catch(() => {});
   });
 
   backdrop.addEventListener('click', (e) => {
