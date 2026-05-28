@@ -44,14 +44,35 @@ function nextOccurrence(time) {
   return at;
 }
 
-export async function rescheduleAll() {
+let inFlight = null;
+let queued = false;
+
+export function rescheduleAll() {
+  if (inFlight) {
+    // Coalesce: re-run once after the current pass finishes so that
+    // mutations applied while in flight aren't lost.
+    queued = true;
+    return inFlight;
+  }
+  inFlight = doReschedule().finally(() => {
+    const rerun = queued;
+    queued = false;
+    inFlight = null;
+    if (rerun) rescheduleAll();
+  });
+  return inFlight;
+}
+
+async function doReschedule() {
   if (!SUPPORTED) return { scheduled: 0, skipped: 'unsupported' };
   const perm = await ensurePermission();
   if (perm !== 'granted') return { scheduled: 0, skipped: 'permission-denied' };
 
   const pending = await LocalNotifications.getPending();
-  if (pending.notifications.length) {
-    await LocalNotifications.cancel({ notifications: pending.notifications.map(n => ({ id: n.id })) });
+  // Only cancel notifications we scheduled — leave other plugins' notifications alone.
+  const mine = pending.notifications.filter(n => n.extra?.medId);
+  if (mine.length) {
+    await LocalNotifications.cancel({ notifications: mine.map(n => ({ id: n.id })) });
   }
   if (!state.notificationsEnabled) return { scheduled: 0, skipped: 'disabled' };
 

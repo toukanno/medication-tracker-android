@@ -104,9 +104,17 @@ export function renderSettings(root, { rerender }) {
     try {
       const txt = await file.text();
       const data = JSON.parse(txt);
+      if (Array.isArray(data.medications) && !data.medications.every(isValidMedication)) {
+        alert('インポートに失敗しました: 薬データの形式が正しくありません');
+        return;
+      }
+      if (Array.isArray(data.logs) && !data.logs.every(isValidLog)) {
+        alert('インポートに失敗しました: 履歴データの形式が正しくありません');
+        return;
+      }
       if (Array.isArray(data.medications)) state.medications = data.medications;
       if (Array.isArray(data.logs)) state.logs = data.logs;
-      if (typeof data.theme === 'string') {
+      if (typeof data.theme === 'string' && THEMES.some(t => t.key === data.theme)) {
         state.theme = data.theme;
         document.body.dataset.theme = data.theme;
       }
@@ -134,4 +142,24 @@ export function renderSettings(root, { rerender }) {
     </div>
   `;
   root.appendChild(about);
+}
+
+const TIME_RE = /^\d{2}:\d{2}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidMedication(m) {
+  return m && typeof m === 'object'
+    && typeof m.id === 'string' && m.id.length > 0
+    && typeof m.name === 'string'
+    && Array.isArray(m.times)
+    && m.times.every(t => typeof t === 'string' && TIME_RE.test(t));
+}
+
+function isValidLog(l) {
+  return l && typeof l === 'object'
+    && typeof l.id === 'string'
+    && typeof l.medId === 'string'
+    && typeof l.time === 'string' && TIME_RE.test(l.time)
+    && typeof l.date === 'string' && DATE_RE.test(l.date)
+    && typeof l.takenAt === 'number' && Number.isFinite(l.takenAt);
 }
