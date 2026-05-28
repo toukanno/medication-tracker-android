@@ -4,6 +4,76 @@
 
 GitHub: <https://github.com/toukanno/medication-tracker-android>
 
+---
+
+## 💊 お薬管理アプリ（ユーザー向け概要）
+
+> ※ こちらはリポジトリを訪れた方向けのサマリーです。技術的なドキュメントは [構成](#構成) 以降をご覧ください。
+
+### 📱 アプリ概要
+
+服薬のスケジュール管理・記録を、スマホひとつで完結できる **Android 向けのお薬管理アプリ** です。
+「いつ・どの薬を・飲んだか」を素早く記録でき、毎日のリマインダー通知で飲み忘れを防ぎます。
+
+### ✨ 主な機能
+
+- ✅ **服薬記録** — ワンタップで「飲んだ」を記録
+- 💊 **お薬一覧管理** — 薬の登録 / 編集 / 削除
+- 🎨 **テーマカラー変更** — 10 色（blue / green / pink / purple / orange / red / teal / indigo / amber / slate）から選択可能
+- 📊 **履歴確認** — 直近 7 日間の服薬状況を棒グラフで可視化
+- 🔔 **通知機能** — 服用時刻に毎日ローカル通知でリマインド（Android 13+ は通知権限の許可が必要）
+- 📅 **カレンダー管理**（予定） — 月単位の俯瞰ビューを今後追加予定
+
+### 🤖 Android 対応
+
+- ✅ **Android 5.1 (API 22) 以上で動作**（`minSdk=22`）
+- ✅ **Android 14 (API 34) でビルド・検証**（`targetSdk=34`）
+- ✅ APK / AAB の両形式で配布可能
+- ✅ 端末への直接インストール（sideload）対応
+
+### 📥 インストール方法
+
+#### ソースコードを取得してビルドする場合
+
+```bash
+git clone https://github.com/toukanno/medication-tracker-android
+cd medication-tracker-android
+npm install
+source scripts/env.sh
+npm run android:build:debug
+```
+
+#### 配布済みの APK を端末に入れる場合
+
+```bash
+# PC と Android 端末を USB 接続 → 開発者オプションの USB デバッグを ON
+adb install -r medication-tracker-debug.apk
+```
+
+詳細は [Android 端末へのインストール手順](#android-端末へのインストール手順) を参照してください。
+
+### 🛠 使用技術
+
+| カテゴリ | 採用技術 |
+| ---- | ---- |
+| フロントエンド | Vanilla JavaScript (ES Modules) + Vite 5 |
+| Android ラッパー | Capacitor 6.x |
+| ネイティブ機能 | `@capacitor/local-notifications` / `@capacitor/splash-screen` |
+| アイコン生成 | `@capacitor/assets` |
+| ビルドツール | Gradle 8 / Android Gradle Plugin / OpenJDK 17 |
+| 言語 | JavaScript（TypeScript 化は今後の検討対象） |
+
+### 🚀 今後の予定
+
+- 📱 **iOS 版** — 同じ Capacitor 構成で iOS ターゲットを追加
+- ☁️ **クラウド同期** — 端末間でお薬データを同期
+- 💾 **バックアップ機能** — 自動バックアップ / 復元
+- 🤖 **AI による服薬サポート** — 服用パターン分析 / 飲み忘れ予測
+- 🔔 **通知タップで服用記録** — リマインダー通知から直接「飲んだ」を記録
+- 📆 **月次カレンダービュー** — 服薬状況の俯瞰
+
+---
+
 ## 構成
 
 ```
