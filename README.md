@@ -183,6 +183,80 @@ npm run android:build:release    # 署名済み APK
 
 `android/app/build.gradle` の `signingConfigs.release` がこの `keystore.properties` を読みに行く構成になっています (ファイルが無ければ未署名でビルドが進む)。
 
+## 🟢 Android Studio で開いて実行する
+
+CLI ではなく **Android Studio**（Hedgehog / 2023.1.1 以降推奨）を使って動作確認したい場合は、以下の手順で進めてください。
+
+### 1. Android Studio で開く
+
+1. リポジトリを clone してから、まず一度だけ web 側の資産を Android プロジェクトへ反映させます。
+
+   ```bash
+   npm install
+   npm run build              # Vite で dist/ を生成
+   npx cap sync android       # dist/ を android/app/src/main/assets/public へコピー
+   ```
+
+   ※ `dist/` と Capacitor の同期が済んでいないと、Android Studio から起動しても WebView が真っ白になります。
+
+2. Android Studio を起動し「**Open**」を選び、**`medication-tracker-android/android`** ディレクトリ（リポジトリ直下ではなく `android/`）を選択します。
+3. 初回起動時に Android SDK / Gradle のダウンロードを求められた場合は、画面の指示に従ってインストールします（Android 14 / SDK 34 / Build-Tools 34.0.0）。
+
+### 2. Gradle Sync を通す
+
+1. プロジェクトを開くと自動で Gradle Sync が走ります。失敗した場合は **File → Sync Project with Gradle Files**（象アイコン）を再実行してください。
+2. SDK の場所が未設定だと sync が失敗します。**File → Project Structure → SDK Location** から `Android SDK Location` と `Gradle JDK`（JDK 17）を設定してください。
+3. 必要な SDK が無い場合は **Tools → SDK Manager** から以下をインストール:
+   - Android 14（API Level 34）– SDK Platform
+   - Android SDK Build-Tools 34.0.0
+   - Android SDK Platform-Tools
+
+### 3. エミュレータで起動する
+
+1. **Tools → Device Manager → Create Device** で AVD を作成（例: Pixel 6, システムイメージ API 34）。
+2. ツールバー上部の実行構成プルダウンで `app` が選択されていることを確認し、Device Manager で作成したエミュレータを選択。
+3. 緑の ▶（Run 'app'）ボタンを押すと、Gradle build → emulator 起動 → APK インストール → アプリ起動まで自動で進みます。
+4. エミュレータ画面に「お薬トラッカー」が立ち上がれば成功です。
+
+### 4. 実機で起動する
+
+1. 端末の「設定 → 端末情報 → ビルド番号」を 7 回タップして開発者モードを有効化。
+2. 「設定 → 開発者オプション → USB デバッグ」を ON にし、USB で PC に接続。
+3. 端末側で「このコンピュータを信頼しますか?」のダイアログを許可。
+4. Android Studio のツールバーのデバイス選択欄に実機が出てくることを確認し、▶ で実行。
+5. 初回は端末側で「USB 経由でインストールを許可しますか?」のダイアログが出るので許可。
+
+### 5. APK を生成する
+
+#### A. Android Studio から
+
+1. **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+2. 完了通知の「locate」リンク、または下記パスから APK を取り出せます。
+
+#### B. コマンドラインから
+
+```bash
+source scripts/env.sh    # JDK / Android SDK の環境変数を読み込み
+cd android
+./gradlew clean          # ビルドキャッシュをクリア（任意）
+./gradlew assembleDebug  # デバッグ APK を生成
+```
+
+### 6. 生成される APK の場所
+
+| ビルド種別 | パス |
+| ---- | ---- |
+| デバッグ APK（`assembleDebug` / Android Studio Run） | `android/app/build/outputs/apk/debug/app-debug.apk` |
+| リリース APK（`assembleRelease`） | `android/app/build/outputs/apk/release/app-release.apk`（keystore 未設定時は `app-release-unsigned.apk`） |
+| リリース AAB（`bundleRelease`） | `android/app/build/outputs/bundle/release/app-release.aab` |
+| リポジトリ同梱のビルド済み APK | `medication-tracker-debug.apk`（リポジトリ直下） |
+
+APK を実機にインストールするには:
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
 ## Android 端末へのインストール手順
 
 ### A. adb 経由 (USB / Wi-Fi デバッグ) — 推奨
